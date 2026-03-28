@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Student;
@@ -9,88 +8,47 @@ class StudentController extends Controller
 {
     public function index()
     {
-        return response()->json(Student::all());
+        return response()->json(Student::with('applications')->get());
     }
 
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'first_name'     => 'required|string|max:100',
-            'last_name'      => 'required|string|max:100',
-            'middle_name'    => 'nullable|string|max:100',
-            'email'          => 'required|email|unique:students,email',
-            'contact_number' => 'nullable|string|max:20',
+        $data = $request->validate([
+            'first_name'     => 'required|string',
+            'last_name'      => 'required|string',
+            'middle_name'    => 'nullable|string',
+            'email'          => 'required|email|unique:students',
+            'contact_number' => 'nullable|string',
             'address'        => 'nullable|string',
             'birthdate'      => 'nullable|date',
-            'gender'         => 'nullable|in:Male,Female,Other',
-            'school'         => 'nullable|string|max:255',
-            'course'         => 'nullable|string|max:255',
-            'year_level'     => 'nullable|string|max:20',
-            'gwa'            => 'nullable|numeric|min:1|max:5',
-            'family_income'  => 'nullable|numeric|min:0',
+            'gender'         => 'nullable|in:male,female,other',
+            'school'         => 'nullable|string',
+            'course'         => 'nullable|string',
+            'year_level'     => 'nullable|integer',
+            'gwa'            => 'nullable|numeric',
+            'family_income'  => 'nullable|numeric',
         ]);
 
-        $student = Student::create($validated);
-
-        return response()->json([
-            'message' => 'Student created successfully.',
-            'data'    => $student
-        ], 201);
+        $student = Student::create($data);
+        return response()->json($student, 201);
     }
 
-    public function show(string $id)
+    public function show($id)
     {
-        $student = Student::find($id);
-
-        if (!$student) {
-            return response()->json(['message' => 'Student not found.'], 404);
-        }
-
+        $student = Student::with('applications')->findOrFail($id);
         return response()->json($student);
     }
 
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        $student = Student::find($id);
-
-        if (!$student) {
-            return response()->json(['message' => 'Student not found.'], 404);
-        }
-
-        $validated = $request->validate([
-            'first_name'     => 'sometimes|string|max:100',
-            'last_name'      => 'sometimes|string|max:100',
-            'middle_name'    => 'nullable|string|max:100',
-            'email'          => 'sometimes|email|unique:students,email,' . $id,
-            'contact_number' => 'nullable|string|max:20',
-            'address'        => 'nullable|string',
-            'birthdate'      => 'nullable|date',
-            'gender'         => 'nullable|in:Male,Female,Other',
-            'school'         => 'nullable|string|max:255',
-            'course'         => 'nullable|string|max:255',
-            'year_level'     => 'nullable|string|max:20',
-            'gwa'            => 'nullable|numeric|min:1|max:5',
-            'family_income'  => 'nullable|numeric|min:0',
-        ]);
-
-        $student->update($validated);
-
-        return response()->json([
-            'message' => 'Student updated successfully.',
-            'data'    => $student
-        ]);
+        $student = Student::findOrFail($id);
+        $student->update($request->all());
+        return response()->json($student);
     }
 
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        $student = Student::find($id);
-
-        if (!$student) {
-            return response()->json(['message' => 'Student not found.'], 404);
-        }
-
-        $student->delete();
-
-        return response()->json(['message' => 'Student deleted successfully.']);
+        Student::findOrFail($id)->delete();
+        return response()->json(['message' => 'Student deleted.']);
     }
 }
