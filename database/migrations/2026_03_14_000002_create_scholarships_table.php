@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->decimal('amount', 10, 2)->nullable();
             $table->integer('slots')->default(0);
             $table->date('deadline')->nullable();
-            $table->enum('status', ['active', 'inactive', 'closed'])->default('active');
+            $table->enum('status', ['open', 'closed'])->default('open');
             $table->json('requirements')->nullable();
             $table->timestamps();
             $table->softDeletes();
